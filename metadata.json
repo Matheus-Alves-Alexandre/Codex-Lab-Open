@@ -1,0 +1,6 @@
+{
+  "name": "DexReader",
+  "description": "A sleek, dark-themed manga reader powered by the MangaDex API v5.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

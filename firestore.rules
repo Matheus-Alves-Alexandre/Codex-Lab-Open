@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- PRIMITIVE HELPERS ---
+    
+    function isSignedIn() {
+      // Must be authenticated
+      return request.auth != null;
+    }
+    
+    function isOwner(targetUserId) {
+      return isSignedIn() && request.auth.uid == targetUserId;
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    function isValidId(idParam) {
+      return idParam is string && idParam.size() > 0 && idParam.matches('^[^/]+$');
+    }
+
+    // --- STRUCTURAL VALIDATION BLUEPRINTS ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['displayName', 'createdAt']) &&
+             data.keys().hasOnly(['displayName', 'createdAt', 'photoURL', 'nickname', 'bio']) &&
+             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100 &&
+             (data.get('photoURL', '') is string) && data.get('photoURL', '').size() <= 2048 &&
+             (data.get('nickname', '') is string) && data.get('nickname', '').size() <= 50 &&
+             (data.get('bio', '') is string) && data.get('bio', '').size() <= 2000;
+    }
+    
+    function isValidLibraryEntry(data, currentUserId) {
+      return data.keys().hasAll(['userId', 'mangaId', 'status', 'isFavorite', 'savedAt', 'updatedAt']) &&
+             data.keys().hasOnly(['userId', 'mangaId', 'status', 'isFavorite', 'savedAt', 'updatedAt', 'title', 'coverFilename', 'lastReadChapter']) &&
+             data.userId == currentUserId && // ID Integrity lock
+             data.mangaId is string && data.mangaId.size() > 0 &&
+             data.status is string && data.status.matches('^(reading|completed|plan_to_read|dropped)$') &&
+             data.isFavorite is bool &&
+             (data.get('title', '') is string) &&
+             (data.get('coverFilename', '') is string) &&
+             (data.get('lastReadChapter', '') is string);
+    }
+
+    function isValidReview(data, currentUserId) {
+      return data.keys().hasAll(['userId', 'mangaId', 'rating', 'text', 'createdAt', 'updatedAt']) &&
+             data.keys().hasOnly(['userId', 'mangaId', 'rating', 'text', 'createdAt', 'updatedAt', 'mangaTitle', 'coverFilename', 'authorName', 'authorPhoto']) &&
+             data.userId == currentUserId &&
+             data.mangaId is string && data.mangaId.size() > 0 &&
+             data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+             data.text is string && data.text.size() <= 5000 &&
+             (data.get('mangaTitle', '') is string) &&
+             (data.get('coverFilename', '') is string) &&
+             (data.get('authorName', '') is string) &&
+             (data.get('authorPhoto', '') is string);
+    }
+
+    // --- THE FORTRESS RULES ---
+
+    match /reviews/{reviewId} {
+      // Reviews are public for reading
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                       isValidId(reviewId) &&
+                       reviewId == request.auth.uid + '_' + incoming().mangaId &&
+                       isValidReview(incoming(), request.auth.uid) &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time;
+
+      allow update: if isSignedIn() &&
+                       isValidId(reviewId) &&
+                       existing().userId == request.auth.uid && // Must own it
+                       isValidReview(incoming(), request.auth.uid) &&
+                       incoming().userId == existing().userId && // Immortal setup
+                       incoming().mangaId == existing().mangaId && // Immortal setup
+                       incoming().createdAt == existing().createdAt && // Immortal setup
+                       incoming().updatedAt == request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['rating', 'text', 'authorName', 'authorPhoto', 'mangaTitle', 'coverFilename', 'updatedAt']);
+
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      // Identity Tier: Tightly restrict all operations based strictly on ownership matching.
+      allow get: if isOwner(userId);
+      allow list: if false; // Blanket block scraping users collections
+      
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUser(incoming()) &&
+                       incoming().createdAt == request.time; // Temporal integrity
+                       
+      // The "Action-Based" Update
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUser(incoming()) &&
+                       incoming().createdAt == existing().createdAt && // Immortal setup
+                       // Action: Update Profile Details
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'nickname', 'bio']);
+                       
+      allow delete: if false; // Data preservation
+
+      // -----------------------------------------
+      // RELATIONAL DATA: Library Subcollection
+      // -----------------------------------------
+      match /library/{mangaId} {
+        
+        // Secure constraints for subcollection (already isolated by match /users/{userId})
+        allow get, list: if isOwner(userId);
+        
+        allow create: if isOwner(userId) &&
+                         isValidId(mangaId) &&
+                         incoming().mangaId == mangaId &&
+                         incoming().savedAt == request.time &&
+                         incoming().updatedAt == request.time &&
+                         isValidLibraryEntry(incoming(), userId);
+                         
+        allow update: if isOwner(userId) &&
+                         isValidId(mangaId) &&
+                         incoming().mangaId == mangaId &&
+                         incoming().updatedAt == request.time &&
+                         isValidLibraryEntry(incoming(), userId) &&
+                         incoming().userId == existing().userId && // Immortal setup
+                         incoming().mangaId == existing().mangaId && // Immortal setup
+                         // Action: Update Manga Library State. We allow savedAt to change internally if it means fixing data, but block destructive writes to identity.
+                         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'isFavorite', 'title', 'coverFilename', 'lastReadChapter', 'updatedAt', 'savedAt']);
+                         
+        allow delete: if isOwner(userId) && existing().userId == request.auth.uid;
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Private owner-only user profile structure",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string", "description": "Safe display name derived from Google" },
+        "photoURL": { "type": "string", "description": "Avatar URL" },
+        "nickname": { "type": "string", "description": "Custom user nickname" },
+        "bio": { "type": "string", "description": "User biography" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["displayName", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Public review with owner-only mutations",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "mangaId": { "type": "string" },
+        "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "text": { "type": "string", "maxLength": 5000 },
+        "mangaTitle": { "type": "string" },
+        "coverFilename": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "mangaId", "rating", "text", "createdAt", "updatedAt"]
+    },
+    "LibraryEntry": {
+      "title": "LibraryEntry",
+      "description": "User's manga reading status and tracking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "mangaId": { "type": "string" },
+        "title": { "type": "string" },
+        "coverFilename": { "type": "string" },
+        "status": { "enum": ["reading", "completed", "plan_to_read", "dropped"] },
+        "isFavorite": { "type": "boolean" },
+        "lastReadChapter": { "type": "string" },
+        "savedAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "mangaId", "status", "isFavorite", "savedAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/reviews/{uid}_{mangaId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Publicly readable reviews; author-only writes with a deterministic ID"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Root user aggregation"
+    },
+    "/users/{userId}/library/{mangaId}": {
+      "schema": { "$ref": "#/entities/LibraryEntry" },
+      "description": "Subcollection isolating user manga library securely"
+    }
+  }
+}

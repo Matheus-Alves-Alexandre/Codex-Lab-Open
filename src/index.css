@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0F0F0F;
+  --color-foreground: #E5E7EB;
+  --color-card: #1A1A1A;
+  --color-border: #2D2D2D;
+  --color-accent: #FF6740;
+  --color-dark: #0A0A0A;
+  
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.bento-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.bento-card:hover {
+  border-color: var(--color-accent);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.code-block {
+  background-color: var(--color-dark);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.8rem;
+  border-left: 3px solid var(--color-accent);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

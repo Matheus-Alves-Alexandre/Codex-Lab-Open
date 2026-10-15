@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/catalog/:match*",
+      "destination": "https://api.mangadex.org/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

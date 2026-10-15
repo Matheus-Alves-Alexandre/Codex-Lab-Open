@@ -1,0 +1,103 @@
+export type AchievementLevel = 'Recruta' | 'Aventureiro' | 'Guerreiro' | 'Mestre' | 'Sábio' | 'Lendário';
+
+export interface Achievement {
+  id: string;
+  level: AchievementLevel;
+  title: string;
+  description: string;
+  icon?: string;
+  condition?: (stats: any) => boolean;
+}
+
+export const ACHIEVEMENTS: Achievement[] = [
+  { id: 'recruta_1', level: 'Recruta', title: 'Primeiro Passo', description: 'Leia seu primeiro capítulo de mangá.', condition: (s) => s.mangasRead >= 1 },
+  { id: 'recruta_2', level: 'Recruta', title: 'Volumes Colecionados', description: 'Compre seu primeiro volume físico.' },
+  { id: 'recruta_3', level: 'Recruta', title: 'Maratona Noturna', description: 'Leia 10 capítulos em uma única noite.' },
+  { id: 'recruta_4', level: 'Recruta', title: 'Gênero Novo', description: 'Leia um mangá de um gênero que você nunca tentou.' },
+  { id: 'recruta_5', level: 'Recruta', title: 'O Clássico', description: 'Termine um dos "Big Three" (Naruto, Bleach ou One Piece).' },
+  { id: 'recruta_6', level: 'Recruta', title: 'Capa Linda', description: 'Compre um mangá apenas pela arte da capa.' },
+  { id: 'recruta_7', level: 'Recruta', title: 'Marcador de Página', description: 'Use algo que não seja um marcador oficial.' },
+  { id: 'recruta_8', level: 'Recruta', title: 'Velocidade da Luz', description: 'Leia um volume inteiro em menos de 20 minutos.' },
+  { id: 'recruta_9', level: 'Recruta', title: 'Fã de One-Shot', description: 'Leia uma história de capítulo único.' },
+  { id: 'recruta_10', level: 'Recruta', title: 'Acompanhando o Lançamento', description: 'Fique em dia com um mangá semanal.' },
+  { id: 'recruta_11', level: 'Recruta', title: 'Primeiro Drop', description: 'Abandone um mangá que você não estava gostando.' },
+  { id: 'recruta_12', level: 'Recruta', title: 'Indicação de Amigo', description: 'Leia algo recomendado por alguém.' },
+  { id: 'recruta_13', level: 'Recruta', title: 'Viciado em Anime', description: 'Comece o mangá de um anime que você já terminou.' },
+  { id: 'recruta_14', level: 'Recruta', title: 'Preto e Branco', description: 'Acostume-se a ler da direita para a esquerda sem errar a ordem.' },
+  { id: 'recruta_15', level: 'Recruta', title: 'Coleção Organizada', description: 'Arrume sua estante por ordem alfabética ou de editora.' },
+
+  { id: 'avent_1', level: 'Aventureiro', title: 'Explorador de Seinen', description: 'Leia sua primeira obra focada no público adulto.' },
+  { id: 'avent_2', level: 'Aventureiro', title: 'Shoujo Heart', description: 'Leia um romance clássico.' },
+  { id: 'avent_3', level: 'Aventureiro', title: 'Mestre do Horror', description: 'Leia uma obra de Junji Ito.' },
+  { id: 'avent_4', level: 'Aventureiro', title: 'Crying at 3 AM', description: 'Chore com o final de uma história.' },
+  { id: 'avent_5', level: 'Aventureiro', title: 'Maratona de Fim de Semana', description: 'Leia 10 volumes em dois dias.' },
+  { id: 'avent_6', level: 'Aventureiro', title: 'O Crítico', description: 'Dê uma nota para cada mangá que terminar no MyAnimeList ou AniList.', condition: (s) => s.reviewsCount >= 1 },
+  { id: 'avent_7', level: 'Aventureiro', title: 'Caçador de Raridades', description: 'Encontre um volume esgotado em um sebo.' },
+  { id: 'avent_8', level: 'Aventureiro', title: 'Puro Ecchi', description: 'Leia um mangá com fanservice sem sentir vergonha (ou sentindo).' },
+  { id: 'avent_9', level: 'Aventureiro', title: 'Gourmet', description: 'Leia um mangá sobre culinária (ex: Food Wars).' },
+  { id: 'avent_10', level: 'Aventureiro', title: 'Esportista de Sofá', description: 'Termine um mangá de esportes (Spokon).' },
+  { id: 'avent_11', level: 'Aventureiro', title: 'Fiel ao Autor', description: 'Leia três obras diferentes do mesmo mangaká.' },
+  { id: 'avent_12', level: 'Aventureiro', title: 'Leitor de Scan', description: 'Descubra um mangá que ainda não foi publicado no seu país.' },
+  { id: 'avent_13', level: 'Aventureiro', title: 'De Volta ao Passado', description: 'Leia um mangá publicado antes dos anos 90.' },
+  { id: 'avent_14', level: 'Aventureiro', title: 'Mestre dos Cliffhangers', description: 'Termine um volume que acaba em uma parte crucial e comece o próximo.' },
+  { id: 'avent_15', level: 'Aventureiro', title: 'Sem Spoilers', description: 'Consiga terminar uma obra famosa sem levar spoiler do final.' },
+
+  { id: 'guer_1', level: 'Guerreiro', title: '100 Capítulos', description: 'Alcance a marca de 100 capítulos lidos em uma única série.' },
+  { id: 'guer_2', level: 'Guerreiro', title: '500 Capítulos', description: 'Alcance a marca de 500 capítulos lidos em uma única série.' },
+  { id: 'guer_3', level: 'Guerreiro', title: '1000 Capítulos', description: 'O Clã One Piece (ou equivalente).' },
+  { id: 'guer_4', level: 'Guerreiro', title: 'História do Mundo', description: 'Leia um mangá histórico baseado em fatos reais.' },
+  { id: 'guer_5', level: 'Guerreiro', title: 'Sem Diálogos', description: 'Leia um capítulo inteiro que só tenha arte.' },
+  { id: 'guer_6', level: 'Guerreiro', title: 'O Estudioso', description: 'Leia o posfácio ou notas do autor em 10 volumes diferentes.' },
+  { id: 'guer_7', level: 'Guerreiro', title: 'Upgrade Digital', description: 'Assine um serviço oficial de leitura (Shonen Jump, Mangá Plus, etc.).' },
+  { id: 'guer_8', level: 'Guerreiro', title: 'Influenciador', description: 'Convença um amigo a ler seu mangá favorito.' },
+  { id: 'guer_9', level: 'Guerreiro', title: 'Detetive', description: 'Termine um mangá de mistério/investigação.' },
+  { id: 'guer_10', level: 'Guerreiro', title: 'Cyberpunk', description: 'Leia uma obra de ficção científica futurista.' },
+  { id: 'guer_11', level: 'Guerreiro', title: 'Pós-Apocalipse', description: 'Leia uma história de sobrevivência.' },
+  { id: 'guer_12', level: 'Guerreiro', title: 'Antologia', description: 'Leia uma revista de mangás completa.' },
+  { id: 'guer_13', level: 'Guerreiro', title: 'Conhecedor de Traço', description: 'Identifique um autor apenas pelo estilo artístico.' },
+  { id: 'guer_14', level: 'Guerreiro', title: 'Leitor de Borda', description: 'Repare em uma piada escondida na lateral da página.' },
+  { id: 'guer_15', level: 'Guerreiro', title: 'O Re-Leitor', description: 'Leia seu mangá favorito pela segunda vez.' },
+
+  { id: 'mestre_1', level: 'Mestre', title: 'Mural de Arte', description: 'Tenha um pôster ou print de um mangá na parede.' },
+  { id: 'mestre_2', level: 'Mestre', title: 'Trilha Sonora', description: 'Ouça a trilha sonora do anime enquanto lê.' },
+  { id: 'mestre_3', level: 'Mestre', title: 'Análise Técnica', description: 'Note a diferença entre o uso de retículas de autores diferentes.' },
+  { id: 'mestre_4', level: 'Mestre', title: 'Paciência de Jó', description: 'Espere por um hiato de mais de um ano.' },
+  { id: 'mestre_5', level: 'Mestre', title: 'Bilíngue', description: 'Tente ler um capítulo em japonês ou inglês para treinar.' },
+  { id: 'mestre_6', level: 'Mestre', title: 'Fã de Adaptação', description: 'Assista ao live-action e compare com o mangá original.' },
+  { id: 'mestre_7', level: 'Mestre', title: 'Coleção de Nicho', description: 'Complete uma coleção de menos de 5 volumes.' },
+  { id: 'mestre_8', level: 'Mestre', title: 'Longa Jornada', description: 'Complete uma coleção de mais de 30 volumes.' },
+  { id: 'mestre_9', level: 'Mestre', title: 'Debatedor', description: 'Participe de uma discussão acalorada em um fórum.' },
+  { id: 'mestre_10', level: 'Mestre', title: 'Teórico', description: 'Crie uma teoria sobre o final de uma obra que ainda está saindo.' },
+  { id: 'mestre_11', level: 'Mestre', title: 'A Saga dos Spinoffs', description: 'Leia todos os derivados de uma franquia.' },
+  { id: 'mestre_12', level: 'Mestre', title: 'Leitor de Webtoon', description: 'Explore o formato de leitura vertical coreano.' },
+  { id: 'mestre_13', level: 'Mestre', title: 'Manhua Master', description: 'Leia sua primeira obra chinesa.' },
+  { id: 'mestre_14', level: 'Mestre', title: 'Dose Dupla', description: 'Leia o mangá e a Light Novel da mesma obra.' },
+  { id: 'mestre_15', level: 'Mestre', title: 'Sem Dormir', description: 'Leia 50 capítulos seguidos sem pausas longas.' },
+
+  { id: 'sab_1', level: 'Sábio', title: 'Deus da Montanha', description: 'Leia Vagabond.' },
+  { id: 'sab_2', level: 'Sábio', title: 'Eclipse', description: 'Sobreviva à leitura de Berserk.' },
+  { id: 'sab_3', level: 'Sábio', title: 'O Filósofo', description: 'Leia Vinland Saga e mude sua visão sobre violência.' },
+  { id: 'sab_4', level: 'Sábio', title: 'Mestre do Horror Cósmico', description: 'Leia todas as obras de Junji Ito publicadas.' },
+  { id: 'sab_5', level: 'Sábio', title: 'Vanguarda', description: 'Leia um mangá experimental ou alternativo (Gekiga).' },
+  { id: 'sab_6', level: 'Sábio', title: 'O Deus do Mangá', description: 'Leia algo de Osamu Tezuka.' },
+  { id: 'sab_7', level: 'Sábio', title: 'O Grupo de Clamp', description: 'Leia 3 obras da CLAMP e entenda o multiverso delas.' },
+  { id: 'sab_8', level: 'Sábio', title: 'Tragédia Grega', description: 'Termine um mangá onde o protagonista morre no final.' },
+  { id: 'sab_9', level: 'Sábio', title: 'Slice of Life', description: 'Leia um mangá onde nada acontece, mas é lindo.' },
+  { id: 'sab_10', level: 'Sábio', title: 'Comédia Absurda', description: 'Leia um mangá e ria alto sozinho.' },
+  { id: 'sab_11', level: 'Sábio', title: 'Pai da Obra', description: 'Descubra o mangá que inspirou seu anime de infância.' },
+  { id: 'sab_12', level: 'Sábio', title: 'Cena Favorita', description: 'Tenha um print de uma página como papel de parede.' },
+  { id: 'sab_13', level: 'Sábio', title: 'Crítico de Arte', description: 'Identifique o uso de speed lines de forma magistral.' },
+  { id: 'sab_14', level: 'Sábio', title: 'Cronista', description: 'Mantenha um diário ou planilha de tudo o que você lê.' },
+  { id: 'sab_15', level: 'Sábio', title: 'Especialista em Editoras', description: 'Saiba citar 5 editoras de mangá diferentes.' },
+
+  { id: 'leg_1', level: 'Lendário', title: '50 Títulos', description: 'Lido 50 títulos diferentes.', condition: (s) => s.mangasRead >= 50 },
+  { id: 'leg_2', level: 'Lendário', title: '100 Títulos', description: 'Lido 100 títulos diferentes.', condition: (s) => s.mangasRead >= 100 },
+  { id: 'leg_3', level: 'Lendário', title: 'Coleção de Luxo', description: 'Completar uma coleção física inteira de luxo.' },
+  { id: 'leg_4', level: 'Lendário', title: 'Estante de Mangás', description: 'Ter uma prateleira só de mangás.' },
+  { id: 'leg_5', level: 'Lendário', title: 'Encontro com o Criador', description: 'Conhecer um mangaká ou editor.' },
+  { id: 'leg_6', level: 'Lendário', title: 'Cosplayer', description: 'Fazer um cosplay de um personagem de mangá.' },
+  { id: 'leg_7', level: 'Lendário', title: 'Manga Cafe', description: 'Passar um dia inteiro em um Manga Cafe.' },
+  { id: 'leg_8', level: 'Lendário', title: 'Importador', description: 'Importar um mangá do Japão.' },
+  { id: 'leg_9', level: 'Lendário', title: 'Easter Egg', description: 'Achar um Easter Egg do autor.' },
+  { id: 'leg_10', level: 'Lendário', title: 'Evangelizador', description: 'Evangelizar sua família para ler mangá.' }
+];
