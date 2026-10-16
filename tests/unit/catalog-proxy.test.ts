@@ -8,13 +8,13 @@ it('forwards the catalog path and filters to a fixed HTTPS origin', async () => 
   const res = await request(createApiApp(upstream)).get('/api/catalog/manga?title=roots&includes%5B%5D=cover_art').set('Cookie', 'private=secret');
   expect(res.status).toBe(200); expect(res.body).toEqual({ data: [] });
   const [url, options] = upstream.mock.calls[0];
-  expect(String(url)).toBe('https://api.mangadex.org/manga?title=roots&includes%5B%5D=cover_art');
+  expect(String(url)).toBe('https://api.mangadex.org/manga?includes%5B%5D=cover_art&title=roots');
   expect(options).toMatchObject({ redirect: 'error', headers: { Accept: 'application/json' } });
   expect(JSON.stringify(options)).not.toContain('private=secret');
 });
-it('cannot turn a path into an arbitrary upstream', async () => {
-  await request(createApiApp(upstream)).get('/api/catalog//evil.test/path');
-  expect(new URL(String(upstream.mock.calls[0][0])).origin).toBe('https://api.mangadex.org');
+it('rejects paths outside the public reader endpoints', async () => {
+  expect((await request(createApiApp(upstream)).get('/api/catalog//evil.test/path')).status).toBe(400);
+  expect(upstream).not.toHaveBeenCalled();
 });
 it('blocks write methods without contacting the upstream', async () => {
   expect((await request(createApiApp(upstream)).post('/api/catalog/manga')).status).toBe(405); expect(upstream).not.toHaveBeenCalled();

@@ -1,6 +1,6 @@
 # Test plan and results
 
-Local application validation on 2026-10-15, before the clean Git-history initialization. The 77 application, configuration, script, and test files were verified unchanged by SHA-256 during that reset, so the runtime results below retain their original scope. Environment: Windows, Node 24.22.0, Java 21, and Playwright Chromium. Linux CI is configured but has not run on GitHub yet.
+Baseline and capacity validation use Windows, Node 24.22.0, Java 21 and Playwright Chromium. The original published baseline also passed Linux CI. The capacity results below record local validation; see the repository's Quality workflow for the hosted result of each commit. The historical baseline below is separate from the [current capacity results](CAPACITY-RESULTS.md).
 
 ## Coverage by area
 
@@ -22,12 +22,26 @@ Local application validation on 2026-10-15, before the clean Git-history initial
 | Firestore rules | `tests/rules/firestore.test.ts` | Owner isolation, public reviews, valid CRUD, forbidden fields/types/sizes/timestamps/identity |
 | Browser flows | `tests/e2e/site.spec.ts` | Main routes, errors, legacy links, mobile search, viewport width, no Firebase calls in catalog-only mode |
 | Real integration | `scripts/smoke-live.mjs` | Running server reaching the public MangaDex catalog/detail/feed |
+| Catalog capacity | `scripts/load-test.ts`, `tests/load/fixture-server.ts` | 1,000 local virtual clients, cold/warm cache, shared reader metadata, slow/outage/429/overload, health during load |
+| Gateway contracts | `catalog-gateway.test.ts`, `vercel-catalog.test.ts` | Coalescing, pacing, queue/cache bounds, cooldown recovery, stale policy, rewritten Vercel routes |
 
 Unit suite filenames above are under `tests/unit/` unless otherwise specified.
 
+## Current capacity candidate
+
+On 2026-10-15, `npm run test:all` exited with code 0:
+
+- 177 unit/local integration tests across 16 files.
+- 28 Firestore emulator rule tests.
+- 28 Chromium desktop/mobile browser scenarios.
+- Eight local load scenario contracts with 1,000 virtual clients.
+- TypeScript, production build and coverage thresholds passed; line coverage was 91.19%.
+
+The separate 60-second soak also passed: 352,494 successful catalog API responses with 1,000 virtual clients. See [the results and their limits](CAPACITY-RESULTS.md). Forced quota and overload scenarios intentionally return errors. The dependency audit reported zero vulnerabilities; a redacted Gitleaks scan of tracked/nonignored publication files found no secrets. No new dependency was introduced for load testing. Publishing the code or passing CI does not establish deployed production capacity.
+
 ## Final combined run
 
-`npm run test:all` exited with code 0:
+The original `npm run test:all` exited with code 0, before the capacity work:
 
 - **158 unit/local integration tests** across 14 files.
 - **28 rule tests** using the real Firestore emulator.
@@ -36,6 +50,8 @@ Unit suite filenames above are under `tests/unit/` unless otherwise specified.
 - Coverage: **89.36% lines**, **87.22% statements**, **81.48% functions**, **71.85% branches**.
 - Separate real integration smoke passed after the catalog proxy replacement.
 - `npm run audit:security` reported zero vulnerabilities across all dependencies.
+
+Those counts are a historical baseline. `test:all` now also runs the eight local load scenarios. For the current capacity work, commands, acceptance criteria, fixture isolation and production limits are documented in [SCALING.md](SCALING.md). The optional soak is `npm run test:load:soak`. The load report is `test-results/load/latest.json`.
 
 Vitest coverage includes application source and HTTP/image handlers, excluding `src/main.tsx` and type declarations. Setup helper behavior is tested separately. Coverage measures executed code, not product completeness. Thresholds are 65% for lines/statements/functions and 60% for branches.
 

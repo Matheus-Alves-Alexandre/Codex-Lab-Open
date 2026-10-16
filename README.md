@@ -14,6 +14,7 @@ This is an MVP with automated tests and documented limitations. You can run the 
 - Public reviews with ratings, editing, deletion, and sharing actions.
 - Favorite-genre statistics and local achievements; some achievements and feed labels are still simulated.
 - Fixed-origin catalog proxy and restricted image proxy.
+- Bounded catalog caching, request coalescing, outbound pacing and upstream cooldown handling.
 
 Manga metadata and images come from third parties. This repository does not contain a manga collection. The image proxy transmits images and may cache responses; the software does not grant rights to third-party content.
 
@@ -85,13 +86,17 @@ npm run audit:security
 | `npm run check` | Typecheck, coverage, and production build |
 | `npm run test:rules` | Firestore authorization tests against a local demo emulator |
 | `npm run test:e2e` | Chromium desktop and mobile viewport flows |
-| `npm run test:all` | All checks, Firestore rules, and browser tests |
+| `npm run test:all` | All checks, Firestore rules, browser tests and local load scenarios |
 | `npm run audit:security` | Audit all installed production and development dependencies |
 | `npm run test:live` | Optional read-only smoke test against a running server and real MangaDex API |
+| `npm run test:load` | Eight local API load/failure scenarios with 1,000 virtual users and a synthetic upstream |
+| `npm run test:load:soak` | Load scenarios plus a 60-second warm-catalog soak |
 
 Browser tests use controlled catalog/image responses and an isolated server on port 3100. They do not sign in to a real Google account or write to production Firebase. The live smoke test defaults to `http://127.0.0.1:3000` and accepts `SMOKE_BASE_URL`.
 
 Reports are generated in `coverage/`, `playwright-report/`, and `test-results/`, all ignored by Git. See the [test plan](docs/TESTES.md), [dependency remediation notes](docs/DEPENDENCIES.md), and [clean-history verification](docs/SECRET-AUDIT.md). The [Quality workflow](.github/workflows/ci.yml) checks the complete Git history for secrets and runs the dependency audit and test suites on pushes and pull requests.
+
+The load suite never targets the real MangaDex API or Firebase. It verifies local shared-catalog traffic and deliberate overload behavior; it is not a production 1,000-user guarantee. Read the [capacity test methodology and deployment plan](docs/SCALING.md) and [recorded results](docs/CAPACITY-RESULTS.md) before scaling. Limits are process-local: multiple serverless instances need a central gateway or shared coordination.
 
 ## Production build
 
@@ -107,9 +112,9 @@ Firebase variables are embedded at build time. Set them in your hosting provider
 ## Project structure
 
 ```text
-api/                 Shared image handler for Express and Vercel
-server/              HTTP app and fixed-origin catalog proxy
-scripts/             Local Firebase setup and optional live smoke test
+api/                 Vercel catalog adapter and shared image handler
+server/              HTTP app, catalog cache and outbound scheduler
+scripts/             Firebase setup, live smoke and local load runner
 src/api/             MangaDex clients and cover URLs
 src/components/      UI components and reader controls
 src/hooks/           Catalog, authentication, library, profile, and reviews
@@ -119,6 +124,7 @@ src/store/           Reader page state
 tests/unit/          Unit and integration tests
 tests/rules/         Firestore authorization contracts
 tests/e2e/           Browser flows using synthetic data
+tests/load/          Isolated quota-enforcing upstream fixture
 docs/                Setup, tests, dependency changes, and technical assessment
 ```
 
@@ -126,7 +132,7 @@ Routes: `/`, `/search?q=...`, `/manga/:id`, `/reader/:chapterId`, `/chapter/:cha
 
 ## Contributing and project status
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the [technical assessment](docs/AVALIACAO.md). Current priorities include shared library state, chapter pagination, accurate feed labels, bundle size, and completing achievements.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the [technical assessment](docs/AVALIACAO.md). Current priorities include production capacity validation, chapter pagination, accurate feed labels, bundle size, and completing achievements.
 
 **License pending:** the repository does not yet have a license covering the entire project. An Apache-2.0 header exists in `src/App.tsx`; the maintainer still needs to review provenance and add a project-wide `LICENSE` before announcing an open-source release. Third-party dependencies and content retain their own terms.
 

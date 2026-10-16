@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { createContext, createElement, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import type { User } from 'firebase/auth';
 import { collection, query, getDocs, doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "./useAuth";
@@ -15,8 +16,7 @@ export interface LibraryEntry {
   updatedAt: any;
 }
 
-export function useLibrary() {
-  const { user } = useAuth();
+function useLibraryState(user: User | null) {
   const [library, setLibrary] = useState<LibraryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,7 +42,7 @@ export function useLibrary() {
     } catch (err) {
       setError((err as Error).message);
     } finally { setLoading(false); }
-  }, [user]);
+  }, [user?.uid]);
 
   useEffect(() => {
     fetchLibrary();
@@ -125,4 +125,23 @@ export function useLibrary() {
   };
 
   return { library, loading, error, updateEntry, addEntry, removeEntry, fetchLibrary, user };
+}
+
+const LibraryContext = createContext<ReturnType<typeof useLibraryState> | null>(null);
+
+function LibrarySession({ user, children }: { user: User | null; children: ReactNode }) {
+  const value = useLibraryState(user);
+  return createElement(LibraryContext.Provider, { value }, children);
+}
+
+export function LibraryProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  // Replacing the session also discards late reads/writes from the previous user.
+  return createElement(LibrarySession, { key: user?.uid || 'signed-out', user, children });
+}
+
+export function useLibrary() {
+  const value = useContext(LibraryContext);
+  if (!value) throw new Error('useLibrary requires LibraryProvider');
+  return value;
 }

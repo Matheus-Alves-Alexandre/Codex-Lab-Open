@@ -35,4 +35,4 @@ it('Firebase CLI PubSub initializes tracing with the patched OpenTelemetry core'
   const pubsub = new PubSub({ projectId: 'demo-codex-lab' });
   expect(pubsub.topic('test-topic').name).toBe('projects/demo-codex-lab/topics/test-topic');
   await pubsub.close();
-});
+}, 20000); // Cold SDK module loading under coverage can exceed five seconds on Windows.

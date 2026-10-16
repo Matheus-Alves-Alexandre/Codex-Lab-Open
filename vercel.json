@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/catalog/:match*",
-      "destination": "https://api.mangadex.org/:match*"
+      "destination": "/api/catalog?__catalog_path=:match*"
     },
     {
       "source": "/(.*)",

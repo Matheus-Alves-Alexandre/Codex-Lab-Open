@@ -15,38 +15,18 @@ interface PageViewerProps {
 export function PageViewer({ pages, nextChapterId, prevChapterId, onNavigateChapter, isFullscreen, isFavorite, onToggleFavorite }: PageViewerProps) {
   const { currentPage, setCurrentPage } = useReaderStore();
   const [showEndOverlay, setShowEndOverlay] = useState(false);
+  const activeIndex = Math.max(0, Math.min(currentPage - 1, pages.length - 1));
   
-  // Preload all pages sequentially in the background
+  // Keep bandwidth proportional to reading progress, not chapter length.
   useEffect(() => {
-    if (pages.length === 0) return;
-    
-    let isCancelled = false;
-    let currentIndex = 0;
-    
-    const loadNext = () => {
-      if (isCancelled || currentIndex >= pages.length) return;
-      const url = pages[currentIndex];
-      
-      const img = new Image();
-      img.onload = () => {
-        currentIndex++;
-        loadNext();
-      };
-      img.onerror = () => {
-        currentIndex++;
-        loadNext();
-      };
-      img.src = url;
-    };
-    
-    // Give the current page a tiny head start before aggressive preloading
-    const timer = setTimeout(loadNext, 300);
-    
-    return () => {
-      isCancelled = true;
-      clearTimeout(timer);
-    };
-  }, [pages]);
+    const preloads: HTMLImageElement[] = [];
+    const timer = setTimeout(() => {
+      for (const url of pages.slice(activeIndex + 1, activeIndex + 3)) {
+        const image = new Image(); image.src = url; preloads.push(image);
+      }
+    }, 300);
+    return () => { clearTimeout(timer); preloads.forEach(image => { image.src = ''; }); };
+  }, [pages, activeIndex]);
 
   // Reset overlay when chapter changes
   useEffect(() => {
@@ -55,8 +35,6 @@ export function PageViewer({ pages, nextChapterId, prevChapterId, onNavigateChap
 
   if (pages.length === 0) return null;
   
-  // ensure page constraints
-  const activeIndex = Math.max(0, Math.min(currentPage - 1, pages.length - 1));
 
   const handleNext = () => {
     if (currentPage < pages.length) {
@@ -126,14 +104,14 @@ export function PageViewer({ pages, nextChapterId, prevChapterId, onNavigateChap
           </div>
         )}
 
-        {pages.map((url, index) => (
+        {pages.slice(activeIndex, activeIndex + 1).map(url => (
           <img 
             key={url}
             src={url} 
-            alt={`Page ${index + 1}`} 
+            alt={`Page ${activeIndex + 1}`}
             onClick={handleImageClick}
-            className={`w-full h-auto object-contain transition-opacity duration-200 cursor-pointer ${index === activeIndex ? 'opacity-100 flex' : 'opacity-0 hidden'} ${isFullscreen ? 'max-h-screen bg-black' : 'bg-[#111]'}`}
-            loading={index === activeIndex || index === activeIndex + 1 ? "eager" : "lazy"}
+            className={`w-full h-auto object-contain transition-opacity duration-200 cursor-pointer opacity-100 flex ${isFullscreen ? 'max-h-screen bg-black' : 'bg-[#111]'}`}
+            loading="eager"
             referrerPolicy="no-referrer"
             title="Click right half to advance, left half to go back"
           />

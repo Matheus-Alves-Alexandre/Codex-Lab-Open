@@ -49,6 +49,22 @@ it('page viewer navigates pages and stays within bounds', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Next Page' })); expect(useReaderStore.getState().currentPage).toBe(2);
   fireEvent.click(screen.getByRole('button', { name: 'Prev Page' })); expect(useReaderStore.getState().currentPage).toBe(1);
 });
+it('renders only the current page and preloads at most the next two pages', async () => {
+  vi.useFakeTimers();
+  const loaded: string[] = [];
+  vi.stubGlobal('Image', class { set src(value: string) { if (value) loaded.push(value); } });
+  try {
+    const pages = Array.from({ length: 20 }, (_, i) => `${i + 1}.jpg`);
+    render(<PageViewer pages={pages} />);
+    expect(screen.getAllByRole('img')).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(300);
+    expect(loaded).toEqual(['2.jpg', '3.jpg']);
+    fireEvent.click(screen.getByRole('button', { name: 'Next Page' }));
+    await vi.advanceTimersByTimeAsync(300);
+    expect(screen.getByRole('img')).toHaveAttribute('src', '2.jpg');
+    expect(loaded).toEqual(['2.jpg', '3.jpg', '3.jpg', '4.jpg']);
+  } finally { vi.useRealTimers(); }
+});
 it('page viewer dispatches chapter navigation', () => {
   const navigate = vi.fn(); render(<PageViewer pages={['a.jpg']} prevChapterId="prev" nextChapterId="next" onNavigateChapter={navigate} />);
   fireEvent.click(screen.getByRole('button', { name: 'Prev Chapter' })); expect(navigate).toHaveBeenCalledWith('prev');

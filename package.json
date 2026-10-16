@@ -16,10 +16,12 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:live": "node scripts/smoke-live.mjs",
+    "test:load": "tsx scripts/load-test.ts",
+    "test:load:soak": "tsx scripts/load-test.ts --soak-seconds=60",
     "test:rules": "firebase emulators:exec --only firestore --project demo-codex-lab \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --project demo-codex-lab",
     "check": "npm run typecheck && npm run test:coverage && npm run build",
-    "test:all": "npm run check && npm run test:rules && npm run test:e2e",
+    "test:all": "npm run check && npm run test:rules && npm run test:e2e && npm run test:load",
     "setup:firebase": "node scripts/setup-firebase.mjs",
     "audit:security": "npm audit"
   },
