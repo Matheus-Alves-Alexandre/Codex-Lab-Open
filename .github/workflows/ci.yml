@@ -4,6 +4,9 @@ on:
   pull_request:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
 jobs:
   secrets:
     runs-on: ubuntu-latest
@@ -36,12 +39,35 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm ci
-      - run: npm run audit:security
-      - run: npm run check
-      - run: npm run test:rules
+      - name: Audit dependencies
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          npm run audit:security 2>&1 | tee ci-logs/dependency-audit.log
+      - name: Check types, unit tests, coverage and production build
+        run: |
+          set -o pipefail
+          npm run check 2>&1 | tee ci-logs/application-checks.log
+      - name: Test Firestore access rules
+        run: |
+          set -o pipefail
+          npm run test:rules 2>&1 | tee ci-logs/firestore-rules.log
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - run: npm run test:load
+      - name: Test desktop and mobile browser flows
+        run: |
+          set -o pipefail
+          npm run test:e2e 2>&1 | tee ci-logs/browser-tests.log
+      - name: Test catalog load and failure scenarios
+        run: |
+          set -o pipefail
+          npm run test:load 2>&1 | tee ci-logs/load-tests.log
+      - name: Collect emulator diagnostics
+        if: always()
+        run: |
+          mkdir -p ci-logs
+          for log in firebase-debug.log firestore-debug.log; do
+            if [ -f "$log" ]; then cp "$log" ci-logs/; fi
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -50,4 +76,5 @@ jobs:
             coverage/
             playwright-report/
             test-results/
+            ci-logs/
           retention-days: 14
